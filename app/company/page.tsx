@@ -1,8 +1,18 @@
+import Link from 'next/link'
+
 export default function CompanyInfo() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-blue-800 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-xl shadow-2xl p-8 md:p-12">
+          <div className="mb-6">
+            <Link
+              href="/"
+              className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold"
+            >
+              ← 홈으로 돌아가기
+            </Link>
+          </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">회사소개</h1>
 
           <div className="prose prose-lg max-w-none">
