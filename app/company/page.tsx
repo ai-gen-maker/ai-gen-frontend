@@ -19,7 +19,7 @@ export default function CompanyInfo() {
             <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">와처스 주식회사</h2>
             <p className="text-gray-700 leading-relaxed mb-6">
               와처스 주식회사는 AI 기술을 활용한 R&D 컨설팅 전문 기업입니다.
-              13년간의 정부지원사업 컨설팅 경험을 바탕으로 AI-GEN 서비스를 개발하여,
+              14년간의 정부지원사업 컨설팅 경험을 바탕으로 AI-GEN 서비스를 개발하여,
               누구나 쉽고 빠르게 전문적인 사업계획서를 작성할 수 있도록 돕고 있습니다.
             </p>
 
@@ -40,7 +40,7 @@ export default function CompanyInfo() {
               <div className="bg-purple-50 p-6 rounded-lg">
                 <h3 className="font-bold text-purple-900 text-xl mb-3">전문성</h3>
                 <p className="text-purple-800">
-                  13년간의 R&D 컨설팅 노하우를 AI에 담아 전문가 수준의 사업계획서를 제공합니다.
+                  14년간의 R&D 컨설팅 노하우를 AI에 담아 전문가 수준의 사업계획서를 제공합니다.
                 </p>
               </div>
               <div className="bg-blue-50 p-6 rounded-lg">
@@ -74,7 +74,7 @@ export default function CompanyInfo() {
                     <span className="font-semibold">대표자:</span> 여철기
                   </p>
                   <p className="text-gray-900 mb-2">
-                    <span className="font-semibold">설립:</span> 2012년
+                    <span className="font-semibold">설립:</span> 2016년
                   </p>
                 </div>
                 <div>
