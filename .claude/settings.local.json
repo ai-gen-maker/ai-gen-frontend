@@ -8,7 +8,15 @@
       "Bash(npm run dev:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Phase 3 완료 - Google OAuth 인증 시스템 구현\n\nPhase 3: 인증 시스템\n- Google Cloud OAuth 2.0 설정 완료\n- NextAuth.js 설치 및 설정 (v4.24.13)\n- 환경변수 설정 (.env.local)\n- API Route 구현 (app/api/auth/[...nextauth]/route.ts)\n- 타입 확장 (types/next-auth.d.ts)\n- 로그인 페이지 Google OAuth 연동\n- SessionProvider 추가 (app/layout.tsx)\n- 보호 라우트 구현 (middleware.ts)\n\n기능:\n- Google 로그인/로그아웃\n- 세션 관리 및 자동 리디렉션\n- checkout, progress, result 페이지 보호\n- JWT 및 accessToken 관리\n\n테스트:\n- Google OAuth 로그인 성공\n- 자동 리디렉션 확인\n- 보호 라우트 작동 확인\n\n🤖 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git config:*)",
+      "Bash(vercel --version:*)",
+      "Bash(vercel login)",
+      "Bash(vercel --prod)",
+      "Bash(vercel:*)"
     ],
     "deny": [],
     "ask": []

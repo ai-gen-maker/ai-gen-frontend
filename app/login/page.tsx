@@ -27,16 +27,9 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      const result = await signIn('google', {
+      await signIn('google', {
         callbackUrl: '/checkout',
-        redirect: false,
       });
-
-      if (result?.error) {
-        alert('로그인에 실패했습니다: ' + result.error);
-      } else if (result?.url) {
-        router.push(result.url);
-      }
     } catch (error) {
       console.error('Login error:', error);
       alert('로그인 중 오류가 발생했습니다');
