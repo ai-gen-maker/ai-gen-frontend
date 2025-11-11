@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
 import Link from 'next/link';
 
 interface Section {
@@ -18,6 +19,7 @@ export default function ProgressPage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     // sessionStorage에서 데이터 가져오기
@@ -39,74 +41,99 @@ export default function ProgressPage() {
       return;
     }
 
-    // URL 쿼리 파라미터 생성
-    const params = new URLSearchParams({
-      projectName: formData.projectName,
-      competitors: formData.competitors || '',
-      differentiation: formData.differentiation || '',
-      targetRegion: formData.targetRegion || '국내',
-      targetCustomer: formData.targetCustomer || 'B2C',
-      currentStage: formData.currentStage || '아이디어',
-      fundingNeeded: formData.fundingNeeded || '1억원 미만',
-    });
+    const generateDocument = async () => {
+      try {
+        // 백엔드 연결 확인
+        const isHealthy = await apiClient.healthCheck();
+        if (!isHealthy) {
+          setError('백엔드 서버에 연결할 수 없습니다. 서버를 확인해주세요.');
+          setProgress(0);
+          return;
+        }
 
-    // 백엔드 URL (/ 중복 방지)
-    const backendUrl = (
-      process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004'
-    ).replace(/\/$/, '');
+        // URL 쿼리 파라미터 생성
+        const params = new URLSearchParams({
+          projectName: formData.projectName,
+          competitors: formData.competitors || '',
+          differentiation: formData.differentiation || '',
+          targetRegion: formData.targetRegion || '국내',
+          targetCustomer: formData.targetCustomer || 'B2C',
+          currentStage: formData.currentStage || '아이디어',
+          fundingNeeded: formData.fundingNeeded || '1억원 미만',
+        });
 
-    // SSE 연결
-    const eventSource = new EventSource(
-      `${backendUrl}/api/generate/stream?${params}`
-    );
+        // SSE 연결
+        const url = apiClient.getStreamUrl('/api/generate/stream', params);
+        const eventSource = new EventSource(url);
 
-    eventSource.onopen = () => {
-      console.log('SSE connected');
+        eventSource.onopen = () => {
+          console.log('SSE connected');
+        };
+
+        eventSource.addEventListener('message', (e) => {
+          const data = JSON.parse(e.data);
+
+          if (data.type === 'progress') {
+            setProgress(data.progress);
+            setStatusMessage(data.message);
+          }
+
+          if (data.type === 'section') {
+            setSections((prev) => [
+              ...prev,
+              {
+                number: data.sectionNumber,
+                title: data.title,
+                content: data.content,
+              },
+            ]);
+          }
+
+          if (data.type === 'complete') {
+            setProgress(100);
+            setStatusMessage('생성 완료!');
+            const backendUrl = (
+              process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3004'
+            ).replace(/\/$/, '');
+            setDownloadUrl(`${backendUrl}${data.downloadUrl}`);
+            eventSource.close();
+          }
+
+          if (data.type === 'error') {
+            setError(data.error);
+            setStatusMessage('오류 발생');
+            eventSource.close();
+          }
+        });
+
+        eventSource.onerror = (error) => {
+          console.error('SSE Error:', error);
+          eventSource.close();
+
+          // 재연결 시도
+          if (retryCount < 3) {
+            setError(`연결이 끊어졌습니다. 재연결 중... (${retryCount + 1}/3)`);
+            setTimeout(() => {
+              setRetryCount(prev => prev + 1);
+              // 여기서는 사용자가 새로고침하도록 안내
+              setError('연결에 실패했습니다. 페이지를 새로고침해주세요.');
+            }, 3000);
+          } else {
+            setError('서버 연결에 실패했습니다. 페이지를 새로고침해주세요.');
+          }
+        };
+
+        return () => {
+          eventSource.close();
+        };
+      } catch (error) {
+        console.error('Generate document error:', error);
+        setError('문서 생성 중 오류가 발생했습니다.');
+      }
     };
 
-    eventSource.addEventListener('message', (e) => {
-      const data = JSON.parse(e.data);
-
-      if (data.type === 'progress') {
-        setProgress(data.progress);
-        setStatusMessage(data.message);
-      }
-
-      if (data.type === 'section') {
-        setSections((prev) => [
-          ...prev,
-          {
-            number: data.sectionNumber,
-            title: data.title,
-            content: data.content,
-          },
-        ]);
-      }
-
-      if (data.type === 'complete') {
-        setProgress(100);
-        setStatusMessage('생성 완료!');
-        setDownloadUrl(`${backendUrl}${data.downloadUrl}`);
-        eventSource.close();
-      }
-
-      if (data.type === 'error') {
-        setError(data.error);
-        setStatusMessage('오류 발생');
-        eventSource.close();
-      }
-    });
-
-    eventSource.onerror = (err) => {
-      console.error('SSE error:', err);
-      setError('서버 연결 오류');
-      eventSource.close();
-    };
-
-    return () => {
-      eventSource.close();
-    };
-  }, [router]);
+    generateDocument();
+  }, [router, retryCount]);
 
   // 섹션 추가 시 자동 스크롤
   useEffect(() => {
