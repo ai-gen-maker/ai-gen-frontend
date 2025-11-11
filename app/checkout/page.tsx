@@ -1,39 +1,88 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { loadTossPayments } from '@tosspayments/payment-sdk';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const PRICE = 79000;
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { data: session } = useSession();
 
-  const handlePayment = () => {
-    // 입력값 검증 (버튼 disabled로 이미 처리됨)
+  // 에러 처리
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) {
+      const errorMessages: Record<string, string> = {
+        'payment_failed': '결제가 취소되었습니다',
+        'invalid_params': '잘못된 결제 정보입니다',
+        'confirmation_failed': '결제 승인에 실패했습니다',
+        'server_error': '서버 오류가 발생했습니다',
+      };
+
+      alert(errorMessages[error] || '결제 중 오류가 발생했습니다');
+
+      // URL에서 error 파라미터 제거
+      window.history.replaceState({}, '', '/checkout');
+    }
+  }, [searchParams]);
+
+  const handlePayment = async () => {
     if (!name || !email || !phone) {
       alert('모든 필드를 입력해주세요');
       return;
     }
 
-    // 결제 정보 저장
-    sessionStorage.setItem(
-      'paymentInfo',
-      JSON.stringify({
+    if (!session?.user) {
+      alert('로그인이 필요합니다');
+      router.push('/login');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Toss Payments 초기화
+      const tossPayments = await loadTossPayments(
+        process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!
+      );
+
+      // 주문 ID 생성
+      const orderId = `ORDER-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // 결제 정보 저장
+      sessionStorage.setItem('paymentInfo', JSON.stringify({
+        orderId,
         name,
         email,
         phone,
         amount: PRICE,
-        paid: true,
-        paidAt: new Date().toISOString(),
-      })
-    );
+      }));
 
-    // 진행률 페이지로 이동
-    router.push('/progress');
+      // 결제 창 열기
+      await tossPayments.requestPayment('카드', {
+        amount: PRICE,
+        orderId: orderId,
+        orderName: '사업계획서 초안 작성',
+        customerName: name,
+        customerEmail: email,
+        successUrl: `${window.location.origin}/api/payment/success`,
+        failUrl: `${window.location.origin}/checkout?error=payment_failed`,
+      });
+
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('결제 처리 중 오류가 발생했습니다');
+      setLoading(false);
+    }
   };
 
   const isFormValid = name && email && phone;
@@ -131,14 +180,14 @@ export default function CheckoutPage() {
         {/* 결제 버튼 */}
         <button
           onClick={handlePayment}
-          disabled={!isFormValid}
+          disabled={!isFormValid || loading}
           className={`w-full py-4 text-lg font-bold rounded-lg transition-all duration-200 ${
-            isFormValid
+            isFormValid && !loading
               ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-xl'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          Toss Payments로 결제하기
+          {loading ? '처리 중...' : 'Toss Payments로 결제하기'}
         </button>
 
         {/* 안내 문구 */}
