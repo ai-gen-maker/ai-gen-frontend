@@ -32,7 +32,7 @@ function checkRateLimit(ip: string): boolean {
 export default withAuth(
   function middleware(req) {
     // Rate Limiting 체크
-    const ip = req.ip || req.headers.get('x-forwarded-for') || 'unknown'
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
 
     if (!checkRateLimit(ip)) {
       return new NextResponse(
