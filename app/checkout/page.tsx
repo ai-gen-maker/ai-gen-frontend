@@ -17,6 +17,14 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
 
+  // 약관 동의 상태
+  const [agreed, setAgreed] = useState({
+    terms: false,
+    privacy: false,
+    refund: false
+  });
+  const [allAgreed, setAllAgreed] = useState(false);
+
   // 에러 처리
   useEffect(() => {
     const error = searchParams.get('error');
@@ -35,7 +43,29 @@ export default function CheckoutPage() {
     }
   }, [searchParams]);
 
+  // 전체 동의 핸들러
+  const handleAllAgree = (checked: boolean) => {
+    setAllAgreed(checked);
+    setAgreed({
+      terms: checked,
+      privacy: checked,
+      refund: checked
+    });
+  };
+
+  // 개별 동의 핸들러
+  const handleIndividualAgree = (key: keyof typeof agreed, checked: boolean) => {
+    const newAgreed = { ...agreed, [key]: checked };
+    setAgreed(newAgreed);
+    setAllAgreed(newAgreed.terms && newAgreed.privacy && newAgreed.refund);
+  };
+
   const handlePayment = async () => {
+    if (!allAgreed) {
+      alert('약관에 동의해주세요.');
+      return;
+    }
+
     if (!name || !email || !phone) {
       alert('모든 필드를 입력해주세요');
       return;
@@ -84,8 +114,6 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
-
-  const isFormValid = name && email && phone;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-blue-800 flex items-center justify-center px-4">
@@ -177,17 +205,85 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        {/* 약관 동의 */}
+        <div className="bg-gray-50 rounded-lg p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">약관 동의</h3>
+
+          {/* 전체 동의 */}
+          <div className="border-b border-gray-300 pb-4 mb-4">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={allAgreed}
+                onChange={(e) => handleAllAgree(e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="ml-3 text-lg font-semibold text-gray-900">
+                전체 동의
+              </span>
+            </label>
+          </div>
+
+          {/* 개별 동의 */}
+          <div className="space-y-3">
+            <label className="flex items-start cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreed.terms}
+                onChange={(e) => handleIndividualAgree('terms', e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 mt-0.5"
+              />
+              <span className="ml-3 text-gray-700">
+                <span className="text-red-600 font-semibold">(필수)</span> 이용약관에 동의합니다.{' '}
+                <a href="/terms" target="_blank" className="text-blue-600 hover:underline">
+                  자세히 보기
+                </a>
+              </span>
+            </label>
+
+            <label className="flex items-start cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreed.privacy}
+                onChange={(e) => handleIndividualAgree('privacy', e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 mt-0.5"
+              />
+              <span className="ml-3 text-gray-700">
+                <span className="text-red-600 font-semibold">(필수)</span> 개인정보 처리방침에 동의합니다.{' '}
+                <a href="/privacy" target="_blank" className="text-blue-600 hover:underline">
+                  자세히 보기
+                </a>
+              </span>
+            </label>
+
+            <label className="flex items-start cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreed.refund}
+                onChange={(e) => handleIndividualAgree('refund', e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 mt-0.5"
+              />
+              <span className="ml-3 text-gray-700">
+                <span className="text-red-600 font-semibold">(필수)</span> 환불정책을 확인했습니다.{' '}
+                <a href="/refund" target="_blank" className="text-blue-600 hover:underline">
+                  자세히 보기
+                </a>
+              </span>
+            </label>
+          </div>
+        </div>
+
         {/* 결제 버튼 */}
         <button
           onClick={handlePayment}
-          disabled={!isFormValid || loading}
+          disabled={!allAgreed || loading}
           className={`w-full py-4 text-lg font-bold rounded-lg transition-all duration-200 ${
-            isFormValid && !loading
+            allAgreed && !loading
               ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-xl'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          {loading ? '처리 중...' : 'Toss Payments로 결제하기'}
+          {loading ? '처리 중...' : allAgreed ? '결제하기' : '약관에 동의해주세요'}
         </button>
 
         {/* 안내 문구 */}
