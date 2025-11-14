@@ -35,13 +35,16 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, account, profile }) {
       if (account) {
         token.accessToken = account.access_token;
-        token.id = profile?.id;
+        token.userId = account.providerAccountId;
       }
       return token;
     },
+
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
+        // @ts-expect-error - next-auth 기본 타입에 id가 없어서
+        session.user.id = token.userId as string;
+        // @ts-expect-error
         session.accessToken = token.accessToken as string;
       }
       return session;
