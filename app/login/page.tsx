@@ -1,20 +1,22 @@
 'use client';
 
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // 이미 로그인된 경우 리디렉션
+  // 로그인 완료 상태면 자동 이동
   useEffect(() => {
-    if (session) {
-      router.push('/checkout');
+    if (status === 'authenticated') {
+      const callbackUrl = searchParams.get('callbackUrl') || '/';
+      router.push(callbackUrl);
     }
-  }, [session, router]);
+  }, [status, searchParams, router]);
 
   // 로딩 중 표시
   if (status === 'loading') {
@@ -25,11 +27,10 @@ export default function LoginPage() {
     );
   }
 
-  const handleLogin = async () => {
+  const handleGoogleLogin = async () => {
     try {
-      await signIn('google', {
-        callbackUrl: '/checkout',
-      });
+      const callbackUrl = searchParams.get('callbackUrl') || '/';
+      await signIn('google', { callbackUrl });
     } catch (error) {
       console.error('Login error:', error);
       alert('로그인 중 오류가 발생했습니다');
@@ -56,7 +57,7 @@ export default function LoginPage() {
 
         {/* Google 로그인 버튼 */}
         <button
-          onClick={handleLogin}
+          onClick={handleGoogleLogin}
           className="w-full bg-white border-2 border-gray-300 py-3 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-3 transition-all duration-200"
         >
           <span className="text-2xl">🔷</span>
