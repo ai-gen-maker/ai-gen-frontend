@@ -44,7 +44,6 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         // @ts-expect-error - next-auth 기본 타입에 id가 없어서
         session.user.id = token.userId as string;
-        // @ts-expect-error
         session.accessToken = token.accessToken as string;
       }
       return session;
