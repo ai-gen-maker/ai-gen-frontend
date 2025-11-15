@@ -14,9 +14,6 @@ export default function LoginForm({ callbackUrl = "/checkout" }: LoginFormProps)
   const handleGoogleLogin = () => {
     const targetUrl = callbackUrl || "/checkout";
 
-    console.log("[LoginForm] callbackUrl from props:", callbackUrl);
-    console.log("[LoginForm] using targetUrl:", targetUrl);
-
     setError(null);
 
     startTransition(async () => {
@@ -54,10 +51,6 @@ export default function LoginForm({ callbackUrl = "/checkout" }: LoginFormProps)
             {error}
           </p>
         )}
-
-        <p className="mt-4 text-center text-xs text-gray-400">
-          현재 callbackUrl: <code>{callbackUrl}</code>
-        </p>
       </div>
     </div>
   );

@@ -16,7 +16,9 @@
       "Bash(vercel --version:*)",
       "Bash(vercel login)",
       "Bash(vercel --prod)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(npm run build:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": []
