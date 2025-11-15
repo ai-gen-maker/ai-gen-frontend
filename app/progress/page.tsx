@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient } from '@/lib/api-client';
 import Link from 'next/link';
 
@@ -13,6 +13,7 @@ interface Section {
 
 export default function ProgressPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState('생성 준비 중...');
@@ -22,22 +23,38 @@ export default function ProgressPage() {
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    // sessionStorage에서 데이터 가져오기
-    const formDataStr = sessionStorage.getItem('formData');
-    const paymentInfoStr = sessionStorage.getItem('paymentInfo');
+    // 1) URL에서 결제 상태 읽기
+    const paymentStatus = searchParams.get("payment");
+    const orderIdFromUrl = searchParams.get("orderId");
+
+    // 2) sessionStorage 읽기
+    const formDataStr = sessionStorage.getItem("formData");
+    const paymentInfoStr = sessionStorage.getItem("paymentInfo");
 
     if (!formDataStr || !paymentInfoStr) {
-      alert('입력 정보가 없습니다');
-      router.push('/');
+      alert("입력 정보가 없습니다.");
+      router.push("/");
       return;
     }
 
     const formData = JSON.parse(formDataStr);
     const paymentInfo = JSON.parse(paymentInfoStr);
 
+    // 3) URL 쿼리로 결제 성공 확인 + orderId 매칭 후 paid 업데이트
+    if (
+      paymentStatus === "success" &&
+      orderIdFromUrl &&
+      paymentInfo.orderId === orderIdFromUrl &&
+      !paymentInfo.paid
+    ) {
+      paymentInfo.paid = true;
+      sessionStorage.setItem("paymentInfo", JSON.stringify(paymentInfo));
+    }
+
+    // 4) 기존 paid 체크 로직은 그대로 유지
     if (!paymentInfo.paid) {
-      alert('결제가 완료되지 않았습니다');
-      router.push('/checkout');
+      alert("결제가 완료되지 않았습니다.");
+      router.push("/checkout");
       return;
     }
 
@@ -133,7 +150,7 @@ export default function ProgressPage() {
     };
 
     generateDocument();
-  }, [router, retryCount]);
+  }, [router, retryCount, searchParams]);
 
   // 섹션 추가 시 자동 스크롤
   useEffect(() => {

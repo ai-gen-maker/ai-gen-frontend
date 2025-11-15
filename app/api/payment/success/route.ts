@@ -39,7 +39,10 @@ export async function GET(request: NextRequest) {
     }
 
     // 결제 성공 - 진행률 페이지로 리디렉션
-    return NextResponse.redirect(new URL('/progress', request.url))
+    const redirectUrl = new URL("/progress", request.url);
+    redirectUrl.searchParams.set("payment", "success");
+    redirectUrl.searchParams.set("orderId", orderId);
+    return NextResponse.redirect(redirectUrl);
 
   } catch (error) {
     console.error('Payment confirmation error:', error)
