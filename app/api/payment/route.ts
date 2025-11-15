@@ -4,6 +4,15 @@ const EXPECTED_AMOUNT = 79000;
 
 export async function POST(request: NextRequest) {
   try {
+    // ✅ 환경변수 디버그 로그 추가
+    const secretKey = process.env.TOSS_SECRET_KEY;
+    console.log("[Payment Debug] Environment check:", {
+      defined: !!secretKey,
+      prefix: secretKey ? secretKey.slice(0, 10) : null,
+      length: secretKey ? secretKey.length : 0,
+      nodeEnv: process.env.NODE_ENV,
+    });
+
     const { paymentKey, orderId, amount, customerEmail, customerName } = await request.json()
 
     if (!paymentKey || !orderId || !amount) {
