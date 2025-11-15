@@ -2,6 +2,12 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthOptions } from "next-auth";
 
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+console.log('[NextAuth route] Loaded at:', new Date().toISOString());
+console.log('[NextAuth route] Environment:', process.env.NODE_ENV);
+console.log('[NextAuth route] NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   debug: true,
@@ -35,9 +41,12 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async redirect({ url, baseUrl }) {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('[NextAuth redirect] Called!');
+      console.log('[NextAuth redirect] 🔥🔥🔥 CALLBACK CALLED! 🔥🔥🔥');
+      console.log('[NextAuth redirect] Timestamp:', new Date().toISOString());
       console.log('[NextAuth redirect] url:', url);
       console.log('[NextAuth redirect] baseUrl:', baseUrl);
+      console.log('[NextAuth redirect] url type:', typeof url);
+      console.log('[NextAuth redirect] baseUrl type:', typeof baseUrl);
 
       // 1) 상대 경로 (/checkout, /progress 등)
       if (url.startsWith("/")) {
@@ -96,5 +105,14 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+console.log('[NextAuth route] Creating NextAuth handler with authOptions');
+console.log('[NextAuth route] authOptions.callbacks.redirect exists:', !!authOptions.callbacks?.redirect);
+console.log('[NextAuth route] authOptions.debug:', authOptions.debug);
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
 const handler = NextAuth(authOptions);
+
+console.log('[NextAuth route] Handler created successfully');
+
 export { handler as GET, handler as POST };
