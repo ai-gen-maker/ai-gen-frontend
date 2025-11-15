@@ -1,7 +1,7 @@
 // app/login/page.tsx
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import LoginForm from "./LoginForm";
 
 // ✅ 검색 파라미터를 매 요청마다 읽도록 보장
