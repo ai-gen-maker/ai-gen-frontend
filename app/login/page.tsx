@@ -1,42 +1,54 @@
-import { redirect } from "next/navigation";
+// app/login/page.tsx
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import LoginForm from "./LoginForm";
 
-interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+// ✅ 검색 파라미터를 매 요청마다 읽도록 보장
+export const dynamic = "force-dynamic";
+
+type PageProps = {
+  searchParams?: {
+    [key: string]: string | string[] | undefined;
+  };
+};
 
 export default async function LoginPage({ searchParams }: PageProps) {
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('[LoginPage] Called at:', new Date().toISOString());
-  console.log('[LoginPage] searchParams:', searchParams);
-
-  // 서버에서 세션 확인
   const session = await getServerSession(authOptions);
 
-  console.log('[LoginPage] Session exists:', !!session);
-  console.log('[LoginPage] Session user:', session?.user?.email || 'none');
+  // 🔍 raw searchParams 로그
+  console.log("[LoginPage] raw searchParams:", searchParams);
 
-  // 이미 로그인된 경우 callbackUrl로 리디렉션
+  // 1) URL에서 callbackUrl 추출
+  let callbackUrlFromParams: string | undefined;
+
+  const raw = searchParams?.callbackUrl;
+
+  if (typeof raw === "string") {
+    callbackUrlFromParams = raw;
+  } else if (Array.isArray(raw) && raw.length > 0) {
+    callbackUrlFromParams = raw[0];
+  }
+
+  // 2) 최종 callbackUrl 계산
+  const callbackUrl =
+    callbackUrlFromParams && callbackUrlFromParams.length > 0
+      ? callbackUrlFromParams
+      : "/";
+
+  console.log("[LoginPage] computed callbackUrl:", callbackUrl);
+  console.log("[LoginPage] Session exists:", !!session);
+
+  // 이미 로그인된 상태라면 바로 callbackUrl로 보냄
   if (session) {
-    const callbackUrl =
-      typeof searchParams.callbackUrl === "string"
-        ? searchParams.callbackUrl
-        : "/";
-    console.log('[LoginPage] Already logged in - redirecting to:', callbackUrl);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log("[LoginPage] Already logged in - redirecting to:", callbackUrl);
     redirect(callbackUrl);
   }
 
-  // 미인증 상태: 로그인 폼 렌더링
-  const callbackUrl =
-    typeof searchParams.callbackUrl === "string"
-      ? searchParams.callbackUrl
-      : "/";
-
-  console.log('[LoginPage] No session - rendering LoginForm with callbackUrl:', callbackUrl);
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
+  // 로그인 안 되어 있으면 LoginForm에 정확히 전달
+  console.log(
+    "[LoginPage] No session - rendering LoginForm with callbackUrl:",
+    callbackUrl
+  );
   return <LoginForm callbackUrl={callbackUrl} />;
 }
