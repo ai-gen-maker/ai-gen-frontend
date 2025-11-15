@@ -32,6 +32,29 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // 1) 상대 경로 (/checkout, /progress 등)
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+
+      // 2) 같은 도메인의 절대 URL
+      try {
+        const targetUrl = new URL(url);
+        const baseUrlObj = new URL(baseUrl);
+
+        // 같은 origin이면 허용
+        if (targetUrl.origin === baseUrlObj.origin) {
+          return url;
+        }
+      } catch (error) {
+        // URL 파싱 실패 시 무시하고 계속 진행
+      }
+
+      // 3) 외부 도메인이거나 파싱 실패한 경우 baseUrl로 방어
+      return baseUrl;
+    },
+
     async jwt({ token, account, profile }) {
       if (account) {
         token.accessToken = account.access_token;

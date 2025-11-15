@@ -9,6 +9,7 @@ interface LoginFormProps {
 
 export default function LoginForm({ callbackUrl }: LoginFormProps) {
   const handleGoogleLogin = () => {
+    console.log('[LoginForm] callbackUrl:', callbackUrl);
     signIn("google", { callbackUrl });
   };
 
