@@ -4,7 +4,7 @@ const EXPECTED_AMOUNT = 79000;
 
 export async function POST(request: NextRequest) {
   try {
-    const { paymentKey, orderId, amount } = await request.json()
+    const { paymentKey, orderId, amount, customerEmail, customerName } = await request.json()
 
     if (!paymentKey || !orderId || !amount) {
       return NextResponse.json(
@@ -49,23 +49,64 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    const result = await response.json()
+    const confirmResponse = await response.json()
 
     if (!response.ok) {
-      console.error('Payment API error:', result)
+      console.error('Payment API error:', confirmResponse)
       return NextResponse.json(
         {
           success: false,
-          error: result.message || '결제 승인에 실패했습니다'
+          error: confirmResponse.message || '결제 승인에 실패했습니다'
         },
         { status: response.status }
       )
     }
 
+    // 고객 정보 보정
+    const finalCustomerEmail =
+      customerEmail ??
+      confirmResponse.customerEmail ??
+      confirmResponse.customer?.email ??
+      "unknown";
+
+    const finalCustomerName =
+      customerName ??
+      confirmResponse.customerName ??
+      confirmResponse.customer?.name ??
+      "unknown";
+
     // 결제 성공
+    if (confirmResponse.status === "DONE") {
+      // 결제 성공 로그 (운영/법적 기록용)
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      console.log(
+        "[PAYMENT SUCCESS]",
+        JSON.stringify(
+          {
+            orderId: orderId,
+            paymentKey: paymentKey,
+            amount: EXPECTED_AMOUNT,
+            customerEmail: finalCustomerEmail,
+            customerName: finalCustomerName,
+            timestamp: new Date().toISOString(),
+            status: "paid",
+          },
+          null,
+          2,
+        ),
+      );
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+      return NextResponse.json({
+        success: true,
+        data: confirmResponse,
+      });
+    }
+
+    // 결제 성공 (status가 DONE이 아닌 경우)
     return NextResponse.json({
       success: true,
-      payment: result,
+      payment: confirmResponse,
     })
 
   } catch (error) {
