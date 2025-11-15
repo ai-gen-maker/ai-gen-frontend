@@ -1,34 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { loadTossPayments } from '@tosspayments/payment-sdk';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
 interface CheckoutFormProps {
+  user: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
   error?: string;
 }
 
-export default function CheckoutForm({ error }: CheckoutFormProps) {
-  const router = useRouter();
+export default function CheckoutForm({ user, error }: CheckoutFormProps) {
   const PRICE = 79000;
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
-  const { data: session, status } = useSession();
-
-  // 세션 확인 및 리디렉션
-  useEffect(() => {
-    if (status === 'loading') return; // 로딩 중에는 대기
-
-    if (status === 'unauthenticated') {
-      // 미인증 시 로그인 페이지로 리디렉션
-      router.push('/login?callbackUrl=/checkout');
-    }
-  }, [status, router]);
 
   // 약관 동의 상태
   const [agreed, setAgreed] = useState({
@@ -37,6 +28,12 @@ export default function CheckoutForm({ error }: CheckoutFormProps) {
     refund: false
   });
   const [allAgreed, setAllAgreed] = useState(false);
+
+  // 사용자 정보로 초기값 설정
+  useEffect(() => {
+    if (user.name) setName(user.name);
+    if (user.email) setEmail(user.email);
+  }, [user]);
 
   // 에러 처리
   useEffect(() => {
@@ -83,12 +80,6 @@ export default function CheckoutForm({ error }: CheckoutFormProps) {
       return;
     }
 
-    if (!session?.user) {
-      alert('로그인이 필요합니다');
-      router.push('/login?callbackUrl=/checkout');
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -126,23 +117,6 @@ export default function CheckoutForm({ error }: CheckoutFormProps) {
       setLoading(false);
     }
   };
-
-  // 로딩 중일 때 로딩 UI 표시
-  if (status === 'loading') {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-blue-800 flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-          <p className="mt-4 text-white">로딩 중...</p>
-        </div>
-      </main>
-    );
-  }
-
-  // 미인증 상태일 때는 아무것도 표시하지 않음 (리디렉션 중)
-  if (status === 'unauthenticated') {
-    return null;
-  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-blue-800 flex items-center justify-center px-4">
@@ -322,8 +296,8 @@ export default function CheckoutForm({ error }: CheckoutFormProps) {
 
         {/* 뒤로가기 */}
         <div className="text-center mt-4">
-          <Link href="/login" className="text-blue-600 hover:underline">
-            ← 로그인으로 돌아가기
+          <Link href="/" className="text-blue-600 hover:underline">
+            ← 홈으로 돌아가기
           </Link>
         </div>
       </div>
