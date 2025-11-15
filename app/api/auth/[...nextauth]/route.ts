@@ -27,15 +27,25 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-  pages: {
-    signIn: "/login",
-  },
+  // pages 설정 임시 주석 처리 (디버깅용)
+  // pages: {
+  //   signIn: "/login",
+  // },
 
   callbacks: {
     async redirect({ url, baseUrl }) {
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('[NextAuth redirect] Called!');
+      console.log('[NextAuth redirect] url:', url);
+      console.log('[NextAuth redirect] baseUrl:', baseUrl);
+
       // 1) 상대 경로 (/checkout, /progress 등)
       if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
+        const result = `${baseUrl}${url}`;
+        console.log('[NextAuth redirect] Case 1: Relative path');
+        console.log('[NextAuth redirect] Returning:', result);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        return result;
       }
 
       // 2) 같은 도메인의 절대 URL
@@ -43,15 +53,27 @@ export const authOptions: NextAuthOptions = {
         const targetUrl = new URL(url);
         const baseUrlObj = new URL(baseUrl);
 
+        console.log('[NextAuth redirect] Case 2: Absolute URL');
+        console.log('[NextAuth redirect] Parsed targetUrl:', targetUrl.href);
+        console.log('[NextAuth redirect] Parsed baseUrl:', baseUrlObj.href);
+        console.log('[NextAuth redirect] targetUrl.origin:', targetUrl.origin);
+        console.log('[NextAuth redirect] baseUrlObj.origin:', baseUrlObj.origin);
+
         // 같은 origin이면 허용
         if (targetUrl.origin === baseUrlObj.origin) {
+          console.log('[NextAuth redirect] Same origin - Returning:', url);
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
           return url;
         }
       } catch (error) {
+        console.log('[NextAuth redirect] URL parse error:', error);
         // URL 파싱 실패 시 무시하고 계속 진행
       }
 
       // 3) 외부 도메인이거나 파싱 실패한 경우 baseUrl로 방어
+      console.log('[NextAuth redirect] Case 3: Fallback to baseUrl');
+      console.log('[NextAuth redirect] Returning:', baseUrl);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       return baseUrl;
     },
 
