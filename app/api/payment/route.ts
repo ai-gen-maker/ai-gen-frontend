@@ -40,14 +40,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Toss Payments API 호출
+    const authHeader = `Basic ${Buffer.from(
+      process.env.TOSS_SECRET_KEY + ':'
+    ).toString('base64')}`;
+
+    console.log("[Payment Debug] Authorization header:", {
+      prefix: authHeader.slice(0, 20),
+      length: authHeader.length,
+      secretKeyPrefix: secretKey ? secretKey.slice(0, 10) : null,
+    });
+
     const response = await fetch(
       'https://api.tosspayments.com/v1/payments/confirm',
       {
         method: 'POST',
         headers: {
-          'Authorization': `Basic ${Buffer.from(
-            process.env.TOSS_SECRET_KEY + ':'
-          ).toString('base64')}`,
+          'Authorization': authHeader,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
