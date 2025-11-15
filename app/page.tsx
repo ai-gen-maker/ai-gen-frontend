@@ -52,8 +52,8 @@ export default function Home() {
     // sessionStorage에 저장
     sessionStorage.setItem('formData', JSON.stringify(formData));
 
-    // 로그인 페이지로 이동
-    router.push('/login');
+    // 결제 페이지로 이동 (미인증 시 자동으로 로그인 페이지로 리디렉션됨)
+    router.push('/checkout');
   };
 
   return (

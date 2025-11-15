@@ -18,7 +18,17 @@ export default function CheckoutForm({ error }: CheckoutFormProps) {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+
+  // 세션 확인 및 리디렉션
+  useEffect(() => {
+    if (status === 'loading') return; // 로딩 중에는 대기
+
+    if (status === 'unauthenticated') {
+      // 미인증 시 로그인 페이지로 리디렉션
+      router.push('/login?callbackUrl=/checkout');
+    }
+  }, [status, router]);
 
   // 약관 동의 상태
   const [agreed, setAgreed] = useState({
@@ -75,7 +85,7 @@ export default function CheckoutForm({ error }: CheckoutFormProps) {
 
     if (!session?.user) {
       alert('로그인이 필요합니다');
-      router.push('/login');
+      router.push('/login?callbackUrl=/checkout');
       return;
     }
 
@@ -116,6 +126,23 @@ export default function CheckoutForm({ error }: CheckoutFormProps) {
       setLoading(false);
     }
   };
+
+  // 로딩 중일 때 로딩 UI 표시
+  if (status === 'loading') {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-blue-800 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+          <p className="mt-4 text-white">로딩 중...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // 미인증 상태일 때는 아무것도 표시하지 않음 (리디렉션 중)
+  if (status === 'unauthenticated') {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-blue-800 flex items-center justify-center px-4">
