@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+const EXPECTED_AMOUNT = 79000;
+
 export async function POST(request: NextRequest) {
   try {
     const { paymentKey, orderId, amount } = await request.json()
@@ -9,6 +11,23 @@ export async function POST(request: NextRequest) {
         { error: '필수 파라미터가 누락되었습니다' },
         { status: 400 }
       )
+    }
+
+    // 금액 검증 (문자열 → 숫자 변환 포함)
+    const parsedAmount = Number(amount);
+
+    if (parsedAmount !== EXPECTED_AMOUNT) {
+      console.error('[Payment] Amount mismatch:', {
+        received: amount,
+        parsed: parsedAmount,
+        expected: EXPECTED_AMOUNT,
+        orderId,
+      });
+
+      return NextResponse.json(
+        { error: 'Invalid amount' },
+        { status: 400 }
+      );
     }
 
     // Toss Payments API 호출
@@ -25,7 +44,7 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           paymentKey,
           orderId,
-          amount,
+          amount: EXPECTED_AMOUNT,
         }),
       }
     )
