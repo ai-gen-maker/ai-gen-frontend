@@ -4,15 +4,6 @@ const EXPECTED_AMOUNT = 79000;
 
 export async function POST(request: NextRequest) {
   try {
-    // ✅ 환경변수 디버그 로그 추가
-    const secretKey = process.env.TOSS_SECRET_KEY;
-    console.log("[Payment Debug] Environment check:", {
-      defined: !!secretKey,
-      prefix: secretKey ? secretKey.slice(0, 10) : null,
-      length: secretKey ? secretKey.length : 0,
-      nodeEnv: process.env.NODE_ENV,
-    });
-
     const { paymentKey, orderId, amount, customerEmail, customerName } = await request.json()
 
     if (!paymentKey || !orderId || !amount) {
@@ -26,13 +17,6 @@ export async function POST(request: NextRequest) {
     const parsedAmount = Number(amount);
 
     if (parsedAmount !== EXPECTED_AMOUNT) {
-      console.error('[Payment] Amount mismatch:', {
-        received: amount,
-        parsed: parsedAmount,
-        expected: EXPECTED_AMOUNT,
-        orderId,
-      });
-
       return NextResponse.json(
         { error: 'Invalid amount' },
         { status: 400 }
@@ -43,12 +27,6 @@ export async function POST(request: NextRequest) {
     const authHeader = `Basic ${Buffer.from(
       process.env.TOSS_SECRET_KEY + ':'
     ).toString('base64')}`;
-
-    console.log("[Payment Debug] Authorization header:", {
-      prefix: authHeader.slice(0, 20),
-      length: authHeader.length,
-      secretKeyPrefix: secretKey ? secretKey.slice(0, 10) : null,
-    });
 
     const response = await fetch(
       'https://api.tosspayments.com/v1/payments/confirm',
@@ -69,7 +47,6 @@ export async function POST(request: NextRequest) {
     const confirmResponse = await response.json()
 
     if (!response.ok) {
-      console.error('Payment API error:', confirmResponse)
       return NextResponse.json(
         {
           success: false,
@@ -94,26 +71,6 @@ export async function POST(request: NextRequest) {
 
     // 결제 성공
     if (confirmResponse.status === "DONE") {
-      // 결제 성공 로그 (운영/법적 기록용)
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      console.log(
-        "[PAYMENT SUCCESS]",
-        JSON.stringify(
-          {
-            orderId: orderId,
-            paymentKey: paymentKey,
-            amount: EXPECTED_AMOUNT,
-            customerEmail: finalCustomerEmail,
-            customerName: finalCustomerName,
-            timestamp: new Date().toISOString(),
-            status: "paid",
-          },
-          null,
-          2,
-        ),
-      );
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
       return NextResponse.json({
         success: true,
         data: confirmResponse,
@@ -127,7 +84,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Payment error:', error)
     return NextResponse.json(
       {
         success: false,
