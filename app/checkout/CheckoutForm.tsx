@@ -107,8 +107,9 @@ export default function CheckoutForm({ user, error }: CheckoutFormProps) {
         orderName: '사업계획서 초안 작성',
         customerName: name,
         customerEmail: email,
-        successUrl: `${window.location.origin}/api/payment/success`,
-        failUrl: `${window.location.origin}/checkout?error=payment_failed`,
+        // 토스페이먼츠 콜백 URL - www 포함 필수 (origin 불일치 방지)
+        successUrl: 'https://www.ai-gen.co.kr/api/payment/success',
+        failUrl: 'https://www.ai-gen.co.kr/checkout?error=payment_failed',
       });
 
     } catch (error) {
