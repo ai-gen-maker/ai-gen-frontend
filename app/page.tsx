@@ -66,10 +66,13 @@ export default function Home() {
       {/* 제목 섹션 */}
       <div className="text-center mt-12">
         <h2 className="text-4xl text-white font-bold">
-          사업계획서 초안 작성 AI-Agent 서비스
+          사업계획서 '초안' 작성 AI-Agent 서비스
         </h2>
         <p className="text-xl text-gray-200 mt-4">
-          AI가 15분 안에 70페이지 분량의 사업계획서를 작성합니다
+          AI가 15분 안에 70페이지 분량의 사업계획서 초안(Draft)을 작성합니다.
+        </p>
+        <p className="text-sm text-gray-300 mt-2">
+          ※ 본 서비스는 최종 제출용이 아닌 '초안' 작성용이며, 제출 전 반드시 내용을 검토·수정하셔야 합니다.
         </p>
       </div>
 
